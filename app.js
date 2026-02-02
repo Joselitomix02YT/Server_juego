@@ -1,6 +1,8 @@
 const express = require('express');
-const mysql = require('mysql2');
-const cors = require('cors');
+const cors = require('cors');const MySQLStore = require('express-mysql-session')(session)
+const mysql = require('mysql2/promise')
+const path = require('path')
+const bcrypt = require('bcrypt')
 
 const app = express();
 const PORT = 3000;
