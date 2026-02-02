@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const session = require('express-session');
 const MySQLStore = require('express-mysql-session')(session);
-const mysql = require('mysql2/promise');
+const mysql = require('mysql2');
 const path = require('path');
 const bcrypt = require('bcrypt');
 
