@@ -166,6 +166,37 @@ app.get('/api/ninos', (req, res) => {
     });
 });
 
+//Obtener objetivos de un niño
+app.get('/api/objetivos', (req, res) => {
+    const { id_niño } = req.query;
+
+    if (!id_niño) {
+        return res.status(400).json({ error: 'id_niño es requerido' });
+    }
+
+    console.log('Buscando objetivos para id_niño:', id_niño);
+    const query = 'SELECT id_objetivo, texto_objetivo, completado FROM objetivos WHERE id_niño = ?';
+    db.query(query, [id_niño], (err, results) => {
+        if (err) {
+            console.error('Error al obtener objetivos:', err);
+            return res.status(500).json({ error: 'Error al obtener objetivos' });
+        }
+
+        console.log(`✓ Se encontraron ${results.length} objetivos`);
+
+        const objetivos = results.map(row => ({
+            id: row.id_objetivo,
+            descripcion: row.texto_objetivo,
+            completado: row.completado,
+            id_niño: id_niño
+        }));
+
+        console.log('Datos enviados:', JSON.stringify(objetivos));
+        res.json(objetivos);
+    });
+
+});
+
 // Obtener productos (solo los NO comprados)
 app.get('/api/productos', (req, res) => {
     const query = 'SELECT * FROM productos WHERE comprada = FALSE OR comprada IS NULL';
