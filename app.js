@@ -202,8 +202,8 @@ app.put('/api/objetivos/:id', (req, res) => {
     const objetivoId = req.params.id;
     const { completado, fecha_completado } = req.body;
 
-    if (completado === undefined || !fecha_completo) {
-        return res.status(400).json({ error: 'completado y fecha_completo son requeridos' });
+    if (completado === undefined || !fecha_completado) {
+        return res.status(400).json({ error: 'completado y fecha_completado son requeridos' });
     }
 
     const query = 'UPDATE objetivos SET completado = ?, fecha_completado = ? WHERE id_objetivo = ?';
