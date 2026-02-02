@@ -197,6 +197,30 @@ app.get('/api/objetivos', (req, res) => {
 
 });
 
+//Actualizar objetivos
+app.put('/api/objetivos/:id', (req, res) => {
+    const objetivoId = req.params.id;
+    const { completado, fecha_completo } = req.body;
+
+    if (completado === undefined || !fecha_completo) {
+        return res.status(400).json({ error: 'completado y fecha_completo son requeridos' });
+    }
+
+    const query = 'UPDATE objetivos SET completado = ?, fecha_completo = ? WHERE id_objetivo = ?';
+    db.query(query, [completado, fecha_completo, objetivoId], (err, result) => {
+        if (err) {
+            console.error('Error al actualizar objetivo:', err);
+            return res.status(500).json({ error: 'Error al actualizar objetivo' });
+        }
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Objetivo no encontrado' });
+        }
+
+        res.json({ success: true, mensaje: 'Objetivo actualizado exitosamente' });
+    });
+});
+
 // Obtener productos (solo los NO comprados)
 app.get('/api/productos', (req, res) => {
     const query = 'SELECT * FROM productos WHERE comprada = FALSE OR comprada IS NULL';
