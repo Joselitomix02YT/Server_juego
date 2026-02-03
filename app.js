@@ -221,34 +221,54 @@ app.put('/api/objetivos/:id', (req, res) => {
     });
 });
 
-// Obtener productos (solo los NO comprados)
-app.get('/api/productos', (req, res) => {
-    const query = 'SELECT * FROM productos WHERE comprada = FALSE OR comprada IS NULL';
-    db.query(query, (err, results) => {
+// Obtener productos disponibles para un niño (que NO estén en productos_niño)
+app.get('/api/productos/disponibles', (req, res) => {
+    const { id_niño } = req.query;
+    
+    if (!id_niño) {
+        return res.status(400).json({ error: 'id_niño es requerido' });
+    }
+    
+    console.log('Obteniendo productos disponibles para niño ID:', id_niño);
+    
+    // Obtener productos que NO estén en la tabla productos_niño para este niño
+    const query = `
+        SELECT p.* 
+        FROM productos p
+        LEFT JOIN productos_niño pn ON p.id = pn.id_producto AND pn.id_niño = ?
+        WHERE pn.id IS NULL
+    `;
+    
+    db.query(query, [id_niño], (err, results) => {
         if (err) {
-            console.error('Error:', err);
+            console.error('Error al obtener productos:', err);
             return res.status(500).json({ error: 'Error al obtener productos' });
         }
+        
+        console.log(`✓ Se encontraron ${results.length} productos disponibles`);
         res.json(results);
     });
 });
 
-// Marcar producto como comprado
-app.put('/api/productos/:id/comprar', (req, res) => {
-    const productId = req.params.id;
-    const query = 'UPDATE productos SET comprada = TRUE WHERE id = ?';
+// Registrar compra de producto en productos_niño
+app.post('/api/productos_niño', (req, res) => {
+    const { id_niño, id_producto } = req.body;
     
-    db.query(query, [productId], (err, result) => {
+    if (!id_niño || !id_producto) {
+        return res.status(400).json({ error: 'id_niño e id_producto son requeridos' });
+    }
+    
+    console.log(`Registrando compra: Niño ${id_niño}, Producto ${id_producto}`);
+    
+    const query = 'INSERT INTO productos_niño (id_niño, id_producto) VALUES (?, ?)';
+    db.query(query, [id_niño, id_producto], (err, result) => {
         if (err) {
-            console.error('Error:', err);
-            return res.status(500).json({ error: 'Error al comprar producto' });
+            console.error('Error al registrar compra:', err);
+            return res.status(500).json({ error: 'Error al registrar compra' });
         }
         
-        if (result.affectedRows === 0) {
-            return res.status(404).json({ error: 'Producto no encontrado' });
-        }
-        
-        res.json({ success: true, mensaje: 'Producto comprado exitosamente' });
+        console.log('✓ Compra registrada exitosamente');
+        res.json({ success: true, id: result.insertId, mensaje: 'Compra registrada exitosamente' });
     });
 });
 
