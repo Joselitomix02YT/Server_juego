@@ -251,7 +251,7 @@ app.get('/api/productos/disponibles', (req, res) => {
 });
 
 // Registrar compra de producto en productos_niño
-app.post('/api/productos_niño', (req, res) => {
+app.post('/api/productos_nino', (req, res) => {
     const { id_niño, id_producto } = req.body;
     
     if (!id_niño || !id_producto) {
