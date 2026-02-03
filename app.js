@@ -246,9 +246,13 @@ app.get('/api/productos/disponibles', (req, res) => {
         }
         
         console.log(`✓ Se encontraron ${results.length} productos disponibles`);
+        console.log('Datos enviados:', JSON.stringify(results));
         res.json(results);
     });
 });
+
+//Obtener productos comprados por un niño
+
 
 // Registrar compra de producto en productos_niño
 app.post('/api/productos_nino', (req, res) => {
