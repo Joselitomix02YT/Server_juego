@@ -196,6 +196,26 @@ app.get('/api/racha', (req, res) => {
     });
 });
 
+//Update racha del niño
+app.put('/api/racha/:id', (req, res) => {
+    const rachaId = req.params.id;
+    const { fecha_registro, Finalizado } = req.body;
+    if (!fecha_registro || Finalizado === undefined) {
+        return res.status(400).json({ error: 'fecha_registro y Finalizado son requeridos' });
+    }
+    const query = 'UPDATE racha_diaria SET fecha_registro = ?, Finalizado = ? WHERE id_niño = ?';
+    db.query(query, [fecha_registro, Finalizado, rachaId], (err, result) => {
+        if (err) {
+            console.error('Error al actualizar racha:', err);
+            return res.status(500).json({ error: 'Error al actualizar racha' });
+        }
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Racha no encontrada' });
+        }
+        res.json({ success: true, mensaje: 'Racha actualizada exitosamente' });
+    });
+});
+
 //Obtener objetivos de un niño
 app.get('/api/objetivos', (req, res) => {
     const { id_niño } = req.query;
