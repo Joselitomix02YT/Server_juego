@@ -166,6 +166,36 @@ app.get('/api/ninos', (req, res) => {
     });
 });
 
+//Obtener racha del niño
+app.get('/api/racha', (req, res) => {
+    const { id_niño } = req.query;
+
+    if (!id_niño) {
+        return res.status(400).json({ error: 'id_niño es requerido' });
+    }
+
+    console.log('Buscando racha para id_niño:', id_niño);
+    const query = 'SELECT fecha, fecha_registro, Finalizado FROM racha_diaria WHERE id_niño = ?';
+
+    db.query(query, [id_niño], (err, results) => {
+        if (err) {
+            console.error('Error al obtener racha:', err);
+            return res.status(500).json({ error: 'Error al obtener racha' });
+        }
+
+        console.log(`✓ Se encontraron ${results.length} rachas`);
+
+        const rachas = results.map(row => ({
+            Fecha_inicio: row.fecha,
+            Fecha_actual: row.fecha_registro,
+            activa: row.Finalizado === 0
+        }));
+
+        console.log('Datos enviados:', JSON.stringify(rachas));
+        res.json(rachas);
+    });
+});
+
 //Obtener objetivos de un niño
 app.get('/api/objetivos', (req, res) => {
     const { id_niño } = req.query;
