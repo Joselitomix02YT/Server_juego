@@ -186,6 +186,7 @@ app.get('/api/racha', (req, res) => {
         console.log(`✓ Se encontraron ${results.length} rachas`);
 
         const rachas = results.map(row => ({
+            id_racha: row.id_racha,
             Fecha_inicio: row.fecha,
             Fecha_actual: row.fecha_registro,
             activa: row.Finalizado === 1
