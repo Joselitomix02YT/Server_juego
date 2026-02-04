@@ -371,6 +371,74 @@ app.post('/api/productos_nino', (req, res) => {
     });
 });
 
+// Guardar puntaje maximo de un juego
+app.post('/api/puntajemax_juego', (req, res) => {
+    const { juego, puntaje, id_nino } = req.body;
+    
+    if (!juego || puntaje === undefined || !id_nino) {
+        return res.status(400).json({ error: 'juego, puntaje e id_nino son requeridos' });
+    }
+    
+    console.log('Registrando puntaje maximo: Juego', juego, 'Puntaje', puntaje, 'Nino', id_nino);
+    
+    const query = 'INSERT INTO puntajemax_juego (juego, puntaje, id_nino) VALUES (?, ?, ?)';
+    db.query(query, [juego, puntaje, id_nino], (err, result) => {
+        if (err) {
+            console.error('Error al registrar puntaje:', err);
+            return res.status(500).json({ error: 'Error al registrar puntaje' });
+        }
+        
+        console.log('Puntaje registrado exitosamente');
+        res.json({ success: true, id: result.insertId, mensaje: 'Puntaje registrado exitosamente' });
+    });
+});
+
+// Obtener puntaje maximo de un juego para un nino
+app.get('/api/puntajemax_juego', (req, res) => {
+    const { juego, id_nino } = req.query;
+    
+    if (!juego || !id_nino) {
+        return res.status(400).json({ error: 'juego e id_nino son requeridos' });
+    }
+    
+    console.log('Obteniendo puntaje maximo: Juego', juego, 'Nino', id_nino);
+    
+    const query = 'SELECT * FROM puntajemax_juego WHERE juego = ? AND id_nino = ? ORDER BY puntaje DESC LIMIT 1';
+    db.query(query, [juego, id_nino], (err, results) => {
+        if (err) {
+            console.error('Error al obtener puntaje:', err);
+            return res.status(500).json({ error: 'Error al obtener puntaje' });
+        }
+        
+        console.log('Puntaje obtenido:', results.length, 'registros');
+        res.json(results.length > 0 ? results[0] : null);
+    });
+});
+
+// Actualizar puntaje maximo si es mayor
+app.put('/api/puntajemax_juego/:id', (req, res) => {
+    const puntajeId = req.params.id;
+    const { puntaje } = req.body;
+    
+    if (puntaje === undefined) {
+        return res.status(400).json({ error: 'puntaje es requerido' });
+    }
+    
+    const query = 'UPDATE puntajemax_juego SET puntaje = ? WHERE id_puntajemax = ?';
+    db.query(query, [puntaje, puntajeId], (err, result) => {
+        if (err) {
+            console.error('Error al actualizar puntaje:', err);
+            return res.status(500).json({ error: 'Error al actualizar puntaje' });
+        }
+        
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Puntaje no encontrado' });
+        }
+        
+        res.json({ success: true, mensaje: 'Puntaje actualizado exitosamente' });
+    });
+});
+
 // Iniciar servidor
 app.listen(PORT, () => {
     console.log(`Servidor corriendo en http://localhost:${PORT}`);
