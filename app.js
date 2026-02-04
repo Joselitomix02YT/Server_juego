@@ -188,7 +188,7 @@ app.get('/api/racha', (req, res) => {
         const rachas = results.map(row => ({
             Fecha_inicio: row.fecha,
             Fecha_actual: row.fecha_registro,
-            activa: row.Finalizado === 0
+            activa: row.Finalizado === 1
         }));
 
         console.log('Datos enviados:', JSON.stringify(rachas));
@@ -213,6 +213,31 @@ app.put('/api/racha/:id', (req, res) => {
             return res.status(404).json({ error: 'Racha no encontrada' });
         }
         res.json({ success: true, mensaje: 'Racha actualizada exitosamente' });
+    });
+});
+
+//Update racha del niño marcador de Finalizado hasta el momento
+
+app.put('/api/racha/marcador/:id', (req, res) => {
+    const rachaId = req.params.id;
+    const { Finalizado } = req.body;
+
+    if (Finalizado === undefined) {
+        return res.status(400).json({ error: 'Finalizado es requerido' });
+    }
+
+    const query = 'UPDATE racha_diaria SET Finalizado = ? WHERE id_racha = ?';
+    db.query(query, [Finalizado, rachaId], (err, result) => {
+        if (err) {
+            console.error('Error al actualizar marcador de racha:', err);
+            return res.status(500).json({ error: 'Error al actualizar marcador de racha' });
+        }
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Racha no encontrada' });
+        }
+
+        res.json({ success: true, mensaje: 'Marcador de racha actualizado exitosamente' });
     });
 });
 
