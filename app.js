@@ -197,25 +197,24 @@ app.get('/api/racha', (req, res) => {
     });
 });
 
-//Update racha del niño
-app.put('/api/racha/:id', (req, res) => {
-    const ninoId = req.params.id;
+//Update racha del niño por id_racha
+app.put('/api/racha/actualizar/:id', (req, res) => {
+    const rachaId = req.params.id;
     const { fecha_registro, Finalizado } = req.body;
     if (!fecha_registro || Finalizado === undefined) {
         return res.status(400).json({ error: 'fecha_registro y Finalizado son requeridos' });
     }
     
-    // Actualizar la racha activa del niño
-    const query = 'UPDATE racha_diaria SET fecha_registro = ?, Finalizado = ? WHERE id_niño = ? AND Finalizado = 1 ORDER BY id_racha DESC LIMIT 1';
-    db.query(query, [fecha_registro, Finalizado, ninoId], (err, result) => {
+    const query = 'UPDATE racha_diaria SET fecha_registro = ?, Finalizado = ? WHERE id_racha = ?';
+    db.query(query, [fecha_registro, Finalizado, rachaId], (err, result) => {
         if (err) {
             console.error('Error al actualizar racha:', err);
             return res.status(500).json({ error: 'Error al actualizar racha' });
         }
         if (result.affectedRows === 0) {
-            return res.status(404).json({ error: 'Racha activa no encontrada' });
+            return res.status(404).json({ error: 'Racha no encontrada' });
         }
-        console.log(`✓ Racha actualizada para niño ${ninoId}`);
+        console.log(`✓ Racha actualizada (ID: ${rachaId})`);
         res.json({ success: true, mensaje: 'Racha actualizada exitosamente' });
     });
 });
