@@ -175,7 +175,7 @@ app.get('/api/racha', (req, res) => {
     }
 
     console.log('Buscando racha para id_niño:', id_niño);
-    const query = 'SELECT fecha, fecha_registro, Finalizado FROM racha_diaria WHERE id_niño = ?';
+    const query = 'SELECT id_racha, fecha, fecha_registro, Finalizado FROM racha_diaria WHERE id_niño = ?';
 
     db.query(query, [id_niño], (err, results) => {
         if (err) {
