@@ -244,14 +244,17 @@ app.put('/api/racha/marcador/:id', (req, res) => {
 
 //insertar racha si no tiene activa
 app.post('/api/racha', (req, res) => {
-    const { id_niño, fecha, fecha_registro, Finalizado } = req.body;
+    const { id_nino, fecha, fecha_registro, Finalizado } = req.body;
 
-    if (!id_niño || !fecha || !fecha_registro || Finalizado === undefined) {
-        return res.status(400).json({ error: 'id_niño, fecha, fecha_registro y Finalizado son requeridos' });
+    console.log('Body recibido:', JSON.stringify(req.body));
+    console.log('Valores extraídos - id_nino:', id_nino, 'fecha:', fecha, 'fecha_registro:', fecha_registro, 'Finalizado:', Finalizado);
+
+    if (id_nino === undefined || id_nino === null || !fecha || !fecha_registro || Finalizado === undefined) {
+        return res.status(400).json({ error: 'id_nino, fecha, fecha_registro y Finalizado son requeridos' });
     }
 
     const query = 'INSERT INTO racha_diaria (id_niño, fecha, fecha_registro, Finalizado) VALUES (?, ?, ?, ?)';
-    db.query(query, [id_niño, fecha, fecha_registro, Finalizado], (err, result) => {
+    db.query(query, [id_nino, fecha, fecha_registro, Finalizado], (err, result) => {
         if (err) {
             console.error('Error al insertar racha:', err);
             return res.status(500).json({ error: 'Error al insertar racha' });
