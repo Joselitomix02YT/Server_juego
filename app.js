@@ -254,10 +254,15 @@ app.post('/api/racha', (req, res) => {
     }
 
     const query = 'INSERT INTO racha_diaria (id_niño, fecha, fecha_registro, Finalizado) VALUES (?, ?, ?, ?)';
+    console.log('Query SQL:', query);
+    console.log('Parámetros:', [id_nino, fecha, fecha_registro, Finalizado]);
+    
     db.query(query, [id_nino, fecha, fecha_registro, Finalizado], (err, result) => {
         if (err) {
             console.error('Error al insertar racha:', err);
-            return res.status(500).json({ error: 'Error al insertar racha' });
+            console.error('Detalle del error SQL:', err.message);
+            console.error('Código del error:', err.code);
+            return res.status(500).json({ error: 'Error al insertar racha', detalle: err.message });
         }
 
         res.json({ success: true, mensaje: 'Racha insertada exitosamente', id: result.insertId });
