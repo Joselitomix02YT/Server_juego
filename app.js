@@ -318,13 +318,13 @@ app.put('/api/objetivos/:id', (req, res) => {
 
 // Obtener productos disponibles para un niño (que NO estén en productos_niño)
 app.get('/api/productos/disponibles', (req, res) => {
-    const { id_niño } = req.query;
+    const { id_nino } = req.query;
     
-    if (!id_niño) {
-        return res.status(400).json({ error: 'id_niño es requerido' });
+    if (!id_nino) {
+        return res.status(400).json({ error: 'id_nino es requerido' });
     }
     
-    console.log('Obteniendo productos disponibles para niño ID:', id_niño);
+    console.log('Obteniendo productos disponibles para niño ID:', id_nino);
     
     // Obtener productos que NO estén en la tabla productos_niño para este niño
     const query = `
@@ -334,7 +334,7 @@ app.get('/api/productos/disponibles', (req, res) => {
         WHERE pn.id IS NULL
     `;
     
-    db.query(query, [id_niño], (err, results) => {
+    db.query(query, [id_nino], (err, results) => {
         if (err) {
             console.error('Error al obtener productos:', err);
             return res.status(500).json({ error: 'Error al obtener productos' });
@@ -348,13 +348,13 @@ app.get('/api/productos/disponibles', (req, res) => {
 
 //Obtener productos comprados por un niño
 app.get('/api/productos/comprados', (req, res) => {
-    const { id_niño } = req.query;
+    const { id_nino } = req.query;
 
-    if (!id_niño) {
-        return res.status(400).json({ error: 'id_niño es requerido' });
+    if (!id_nino) {
+        return res.status(400).json({ error: 'id_nino es requerido' });
     }
 
-    console.log('Obteniendo productos comprados para niño ID:', id_niño);
+    console.log('Obteniendo productos comprados para niño ID:', id_nino);
 
     const query = `
     SELECT p.* 
@@ -363,7 +363,7 @@ app.get('/api/productos/comprados', (req, res) => {
     WHERE pn.id_niño = ?
     `;
 
-    db.query(query, [id_niño], (err, results) => {
+    db.query(query, [id_nino], (err, results) => {
         if (err) {
             console.error('Error al obtener productos comprados:', err);
             return res.status(500).json({ error: 'Error al obtener productos comprados' });
