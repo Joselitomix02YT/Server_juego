@@ -337,7 +337,9 @@ app.get('/api/productos/disponibles', (req, res) => {
     db.query(query, [id_nino], (err, results) => {
         if (err) {
             console.error('Error al obtener productos:', err);
-            return res.status(500).json({ error: 'Error al obtener productos' });
+            console.error('Query ejecutada:', query);
+            console.error('Parámetro id_nino:', id_nino);
+            return res.status(500).json({ error: 'Error al obtener productos', detalle: err.message });
         }
         
         console.log(`✓ Se encontraron ${results.length} productos disponibles`);
