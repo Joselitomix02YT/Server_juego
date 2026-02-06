@@ -439,6 +439,55 @@ app.put('/api/puntajemax_juego/:id', (req, res) => {
     });
 });
 
+// Actualizar monedas de un niño (sumar monedas ganadas)
+app.put('/api/ninos/:id/monedas', (req, res) => {
+    const ninoId = req.params.id;
+    const { monedas } = req.body;
+    
+    if (monedas === undefined) {
+        return res.status(400).json({ error: 'monedas es requerido' });
+    }
+    
+    console.log('Actualizando monedas para nino ID ' + ninoId + ': +' + monedas + ' monedas');
+    
+    const query = 'UPDATE prueba_niños SET Monedas = Monedas + ? WHERE id_niño = ?';
+    db.query(query, [monedas, ninoId], (err, result) => {
+        if (err) {
+            console.error('Error al actualizar monedas:', err);
+            return res.status(500).json({ error: 'Error al actualizar monedas' });
+        }
+        
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Nino no encontrado' });
+        }
+        
+        console.log('Monedas actualizadas exitosamente');
+        res.json({ success: true, mensaje: 'Monedas actualizadas exitosamente' });
+    });
+});
+
+// Obtener monedas actuales de un niño
+app.get('/api/ninos/:id/monedas', (req, res) => {
+    const ninoId = req.params.id;
+    
+    console.log('Obteniendo monedas para nino ID ' + ninoId);
+    
+    const query = 'SELECT Monedas FROM prueba_niños WHERE id_niño = ?';
+    db.query(query, [ninoId], (err, results) => {
+        if (err) {
+            console.error('Error al obtener monedas:', err);
+            return res.status(500).json({ error: 'Error al obtener monedas' });
+        }
+        
+        if (results.length === 0) {
+            return res.status(404).json({ error: 'Nino no encontrado' });
+        }
+        
+        console.log('Monedas obtenidas: ' + results[0].Monedas);
+        res.json({ monedas: results[0].Monedas });
+    });
+});
+
 // Iniciar servidor
 app.listen(PORT, () => {
     console.log(`Servidor corriendo en http://localhost:${PORT}`);
