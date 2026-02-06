@@ -175,7 +175,7 @@ app.get('/api/racha', (req, res) => {
     }
 
     console.log('Buscando racha para id_niño:', id_niño);
-    const query = 'SELECT fecha, fecha_registro, Finalizado FROM racha_diaria WHERE id_niño = ?';
+    const query = 'SELECT id_racha, fecha, fecha_registro, Finalizado FROM racha_diaria WHERE id_niño = ?';
 
     db.query(query, [id_niño], (err, results) => {
         if (err) {
@@ -186,9 +186,10 @@ app.get('/api/racha', (req, res) => {
         console.log(`✓ Se encontraron ${results.length} rachas`);
 
         const rachas = results.map(row => ({
+            id_racha: row.id_racha,
             Fecha_inicio: row.fecha,
             Fecha_actual: row.fecha_registro,
-            activa: row.Finalizado === 0
+            activa: row.Finalizado === 1
         }));
 
         console.log('Datos enviados:', JSON.stringify(rachas));
@@ -196,14 +197,15 @@ app.get('/api/racha', (req, res) => {
     });
 });
 
-//Update racha del niño
-app.put('/api/racha/:id', (req, res) => {
+//Update racha del niño por id_racha
+app.put('/api/racha/actualizar/:id', (req, res) => {
     const rachaId = req.params.id;
     const { fecha_registro, Finalizado } = req.body;
     if (!fecha_registro || Finalizado === undefined) {
         return res.status(400).json({ error: 'fecha_registro y Finalizado son requeridos' });
     }
-    const query = 'UPDATE racha_diaria SET fecha_registro = ?, Finalizado = ? WHERE id_niño = ?';
+    
+    const query = 'UPDATE racha_diaria SET fecha_registro = ?, Finalizado = ? WHERE id_racha = ?';
     db.query(query, [fecha_registro, Finalizado, rachaId], (err, result) => {
         if (err) {
             console.error('Error al actualizar racha:', err);
@@ -212,7 +214,33 @@ app.put('/api/racha/:id', (req, res) => {
         if (result.affectedRows === 0) {
             return res.status(404).json({ error: 'Racha no encontrada' });
         }
+        console.log(`✓ Racha actualizada (ID: ${rachaId})`);
         res.json({ success: true, mensaje: 'Racha actualizada exitosamente' });
+    });
+});
+
+//Update racha del niño marcador de Finalizado hasta el momento
+
+app.put('/api/racha/marcador/:id', (req, res) => {
+    const rachaId = req.params.id;
+    const { Finalizado } = req.body;
+
+    if (Finalizado === undefined) {
+        return res.status(400).json({ error: 'Finalizado es requerido' });
+    }
+
+    const query = 'UPDATE racha_diaria SET Finalizado = ? WHERE id_racha = ?';
+    db.query(query, [Finalizado, rachaId], (err, result) => {
+        if (err) {
+            console.error('Error al actualizar marcador de racha:', err);
+            return res.status(500).json({ error: 'Error al actualizar marcador de racha' });
+        }
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Racha no encontrada' });
+        }
+
+        res.json({ success: true, mensaje: 'Marcador de racha actualizado exitosamente' });
     });
 });
 
@@ -304,8 +332,8 @@ app.get('/api/productos/disponibles', (req, res) => {
     const query = `
         SELECT p.* 
         FROM productos p
-        LEFT JOIN productos_niño pn ON p.id = pn.id_producto AND pn.id_niño = ?
-        WHERE pn.id IS NULL
+        LEFT JOIN productos_niño pn ON p.id_producto = pn.id_producto AND pn.id_niño = ?
+        WHERE pn.id_producto IS NULL
     `;
     
     db.query(query, [id_niño], (err, results) => {
@@ -333,7 +361,7 @@ app.get('/api/productos/comprados', (req, res) => {
     const query = `
     SELECT p.* 
     FROM productos p
-    INNER JOIN productos_niño pn ON p.id = pn.id_producto
+    INNER JOIN productos_niño pn ON p.id_producto = pn.id_producto
     WHERE pn.id_niño = ?
     `;
 
