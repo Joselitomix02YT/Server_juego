@@ -168,16 +168,16 @@ app.get('/api/ninos', (req, res) => {
 
 //Obtener racha del niño
 app.get('/api/racha', (req, res) => {
-    const { id_niño } = req.query;
+    const { id_nino } = req.query;
 
-    if (!id_niño) {
-        return res.status(400).json({ error: 'id_niño es requerido' });
+    if (!id_nino) {
+        return res.status(400).json({ error: 'id_nino es requerido' });
     }
 
-    console.log('Buscando racha para id_niño:', id_niño);
+    console.log('Buscando racha para id_nino:', id_nino);
     const query = 'SELECT id_racha, fecha, fecha_registro, Finalizado FROM racha_diaria WHERE id_niño = ?';
 
-    db.query(query, [id_niño], (err, results) => {
+    db.query(query, [id_nino], (err, results) => {
         if (err) {
             console.error('Error al obtener racha:', err);
             return res.status(500).json({ error: 'Error al obtener racha' });
@@ -246,22 +246,15 @@ app.put('/api/racha/marcador/:id', (req, res) => {
 app.post('/api/racha', (req, res) => {
     const { id_nino, fecha, fecha_registro, Finalizado } = req.body;
 
-    console.log('Body recibido:', JSON.stringify(req.body));
-    console.log('Valores extraídos - id_nino:', id_nino, 'fecha:', fecha, 'fecha_registro:', fecha_registro, 'Finalizado:', Finalizado);
-
-    if (id_nino === undefined || id_nino === null || !fecha || !fecha_registro || Finalizado === undefined) {
+    if (!id_nino || !fecha || !fecha_registro || Finalizado === undefined) {
         return res.status(400).json({ error: 'id_nino, fecha, fecha_registro y Finalizado son requeridos' });
     }
 
+    console.log('Insertando racha para id_nino:', id_nino);
     const query = 'INSERT INTO racha_diaria (id_niño, fecha, fecha_registro, Finalizado) VALUES (?, ?, ?, ?)';
-    console.log('Query SQL:', query);
-    console.log('Parámetros:', [id_nino, fecha, fecha_registro, Finalizado]);
-    
     db.query(query, [id_nino, fecha, fecha_registro, Finalizado], (err, result) => {
         if (err) {
             console.error('Error al insertar racha:', err);
-            console.error('Detalle del error SQL:', err.message);
-            console.error('Código del error:', err.code);
             return res.status(500).json({ error: 'Error al insertar racha', detalle: err.message });
         }
 
@@ -271,15 +264,15 @@ app.post('/api/racha', (req, res) => {
 
 //Obtener objetivos de un niño
 app.get('/api/objetivos', (req, res) => {
-    const { id_niño } = req.query;
+    const { id_nino } = req.query;
 
-    if (!id_niño) {
-        return res.status(400).json({ error: 'id_niño es requerido' });
+    if (!id_nino) {
+        return res.status(400).json({ error: 'id_nino es requerido' });
     }
 
-    console.log('Buscando objetivos para id_niño:', id_niño);
+    console.log('Buscando objetivos para id_nino:', id_nino);
     const query = 'SELECT id_objetivo, texto_objetivo, completado FROM objetivos WHERE id_niño = ?';
-    db.query(query, [id_niño], (err, results) => {
+    db.query(query, [id_nino], (err, results) => {
         if (err) {
             console.error('Error al obtener objetivos:', err);
             return res.status(500).json({ error: 'Error al obtener objetivos' });
@@ -291,7 +284,7 @@ app.get('/api/objetivos', (req, res) => {
             id: row.id_objetivo,
             descripcion: row.texto_objetivo,
             completado: row.completado,
-            id_niño: id_niño
+            id_nino: id_nino
         }));
 
         console.log('Datos enviados:', JSON.stringify(objetivos));
@@ -338,16 +331,14 @@ app.get('/api/productos/disponibles', (req, res) => {
     const query = `
         SELECT p.* 
         FROM productos p
-        LEFT JOIN productos_niño pn ON p.id_producto = pn.id_producto AND pn.id_niño = ?
+        LEFT JOIN productos_niño pn ON p.id = pn.id_producto AND pn.id_niño = ?
         WHERE pn.id IS NULL
     `;
     
     db.query(query, [id_nino], (err, results) => {
         if (err) {
             console.error('Error al obtener productos:', err);
-            console.error('Query ejecutada:', query);
-            console.error('Parámetro id_nino:', id_nino);
-            return res.status(500).json({ error: 'Error al obtener productos', detalle: err.message });
+            return res.status(500).json({ error: 'Error al obtener productos' });
         }
         
         console.log(`✓ Se encontraron ${results.length} productos disponibles`);
@@ -369,7 +360,7 @@ app.get('/api/productos/comprados', (req, res) => {
     const query = `
     SELECT p.* 
     FROM productos p
-    INNER JOIN productos_niño pn ON p.id_producto = pn.id_producto
+    INNER JOIN productos_niño pn ON p.id = pn.id_producto
     WHERE pn.id_niño = ?
     `;
 
@@ -387,17 +378,9 @@ app.get('/api/productos/comprados', (req, res) => {
 
 // Registrar compra de producto en productos_niño
 app.post('/api/productos_nino', (req, res) => {
-    console.log('📦 Body recibido:', JSON.stringify(req.body));
-    console.log('📦 Tipo de req.body:', typeof req.body);
-    console.log('📦 Keys del body:', Object.keys(req.body));
-    
     const { id_nino, id_producto } = req.body;
     
-    console.log(`📦 id_nino extraído: ${id_nino} (tipo: ${typeof id_nino})`);
-    console.log(`📦 id_producto extraído: ${id_producto} (tipo: ${typeof id_producto})`);
-    
-    if (id_nino === undefined || id_nino === null || id_producto === undefined || id_producto === null) {
-        console.error('❌ Validación falló - id_nino:', id_nino, 'id_producto:', id_producto);
+    if (!id_nino || !id_producto) {
         return res.status(400).json({ error: 'id_nino e id_producto son requeridos' });
     }
     
