@@ -175,7 +175,7 @@ app.get('/api/racha', (req, res) => {
     }
 
     console.log('Buscando racha para id_niño:', id_niño);
-    const query = 'SELECT id_racha, fecha, fecha_registro, Finalizado FROM racha_diaria WHERE id_niño = ?';
+    const query = 'SELECT fecha, fecha_registro, Finalizado FROM racha_diaria WHERE id_niño = ?';
 
     db.query(query, [id_niño], (err, results) => {
         if (err) {
@@ -197,15 +197,14 @@ app.get('/api/racha', (req, res) => {
     });
 });
 
-//Update racha del niño por id_racha
-app.put('/api/racha/actualizar/:id', (req, res) => {
+//Update racha del niño
+app.put('/api/racha/:id', (req, res) => {
     const rachaId = req.params.id;
     const { fecha_registro, Finalizado } = req.body;
     if (!fecha_registro || Finalizado === undefined) {
         return res.status(400).json({ error: 'fecha_registro y Finalizado son requeridos' });
     }
-    
-    const query = 'UPDATE racha_diaria SET fecha_registro = ?, Finalizado = ? WHERE id_racha = ?';
+    const query = 'UPDATE racha_diaria SET fecha_registro = ?, Finalizado = ? WHERE id_niño = ?';
     db.query(query, [fecha_registro, Finalizado, rachaId], (err, result) => {
         if (err) {
             console.error('Error al actualizar racha:', err);
@@ -214,7 +213,6 @@ app.put('/api/racha/actualizar/:id', (req, res) => {
         if (result.affectedRows === 0) {
             return res.status(404).json({ error: 'Racha no encontrada' });
         }
-        console.log(`✓ Racha actualizada (ID: ${rachaId})`);
         res.json({ success: true, mensaje: 'Racha actualizada exitosamente' });
     });
 });
@@ -332,8 +330,8 @@ app.get('/api/productos/disponibles', (req, res) => {
     const query = `
         SELECT p.* 
         FROM productos p
-        LEFT JOIN productos_niño pn ON p.id_producto = pn.id_producto AND pn.id_niño = ?
-        WHERE pn.id_producto IS NULL
+        LEFT JOIN productos_niño pn ON p.id = pn.id_producto AND pn.id_niño = ?
+        WHERE pn.id IS NULL
     `;
     
     db.query(query, [id_niño], (err, results) => {
@@ -361,7 +359,7 @@ app.get('/api/productos/comprados', (req, res) => {
     const query = `
     SELECT p.* 
     FROM productos p
-    INNER JOIN productos_niño pn ON p.id_producto = pn.id_producto
+    INNER JOIN productos_niño pn ON p.id = pn.id_producto
     WHERE pn.id_niño = ?
     `;
 
@@ -379,16 +377,16 @@ app.get('/api/productos/comprados', (req, res) => {
 
 // Registrar compra de producto en productos_niño
 app.post('/api/productos_nino', (req, res) => {
-    const { id_niño, id_producto } = req.body;
+    const { id_nino, id_producto } = req.body;
     
-    if (!id_niño || !id_producto) {
-        return res.status(400).json({ error: 'id_niño e id_producto son requeridos' });
+    if (!id_nino || !id_producto) {
+        return res.status(400).json({ error: 'id_nino e id_producto son requeridos' });
     }
     
-    console.log(`Registrando compra: Niño ${id_niño}, Producto ${id_producto}`);
+    console.log(`Registrando compra: Niño ${id_nino}, Producto ${id_producto}`);
     
     const query = 'INSERT INTO productos_niño (id_niño, id_producto) VALUES (?, ?)';
-    db.query(query, [id_niño, id_producto], (err, result) => {
+    db.query(query, [id_nino, id_producto], (err, result) => {
         if (err) {
             console.error('Error al registrar compra:', err);
             return res.status(500).json({ error: 'Error al registrar compra' });
@@ -464,6 +462,55 @@ app.put('/api/puntajemax_juego/:id', (req, res) => {
         }
         
         res.json({ success: true, mensaje: 'Puntaje actualizado exitosamente' });
+    });
+});
+
+// Actualizar monedas de un niño (sumar monedas ganadas)
+app.put('/api/ninos/:id/monedas', (req, res) => {
+    const ninoId = req.params.id;
+    const { monedas } = req.body;
+    
+    if (monedas === undefined) {
+        return res.status(400).json({ error: 'monedas es requerido' });
+    }
+    
+    console.log('Actualizando monedas para nino ID ' + ninoId + ': +' + monedas + ' monedas');
+    
+    const query = 'UPDATE prueba_niños SET Monedas = Monedas + ? WHERE id_niño = ?';
+    db.query(query, [monedas, ninoId], (err, result) => {
+        if (err) {
+            console.error('Error al actualizar monedas:', err);
+            return res.status(500).json({ error: 'Error al actualizar monedas' });
+        }
+        
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Nino no encontrado' });
+        }
+        
+        console.log('Monedas actualizadas exitosamente');
+        res.json({ success: true, mensaje: 'Monedas actualizadas exitosamente' });
+    });
+});
+
+// Obtener monedas actuales de un niño
+app.get('/api/ninos/:id/monedas', (req, res) => {
+    const ninoId = req.params.id;
+    
+    console.log('Obteniendo monedas para nino ID ' + ninoId);
+    
+    const query = 'SELECT Monedas FROM prueba_niños WHERE id_niño = ?';
+    db.query(query, [ninoId], (err, results) => {
+        if (err) {
+            console.error('Error al obtener monedas:', err);
+            return res.status(500).json({ error: 'Error al obtener monedas' });
+        }
+        
+        if (results.length === 0) {
+            return res.status(404).json({ error: 'Nino no encontrado' });
+        }
+        
+        console.log('Monedas obtenidas: ' + results[0].Monedas);
+        res.json({ monedas: results[0].Monedas });
     });
 });
 
