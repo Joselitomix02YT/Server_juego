@@ -379,9 +379,17 @@ app.get('/api/productos/comprados', (req, res) => {
 
 // Registrar compra de producto en productos_niño
 app.post('/api/productos_nino', (req, res) => {
+    console.log('📦 Body recibido:', JSON.stringify(req.body));
+    console.log('📦 Tipo de req.body:', typeof req.body);
+    console.log('📦 Keys del body:', Object.keys(req.body));
+    
     const { id_nino, id_producto } = req.body;
     
-    if (!id_nino || !id_producto) {
+    console.log(`📦 id_nino extraído: ${id_nino} (tipo: ${typeof id_nino})`);
+    console.log(`📦 id_producto extraído: ${id_producto} (tipo: ${typeof id_producto})`);
+    
+    if (id_nino === undefined || id_nino === null || id_producto === undefined || id_producto === null) {
+        console.error('❌ Validación falló - id_nino:', id_nino, 'id_producto:', id_producto);
         return res.status(400).json({ error: 'id_nino e id_producto son requeridos' });
     }
     
