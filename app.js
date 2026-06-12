@@ -550,7 +550,7 @@ app.get('/api/nino', (req, res) => {
             tipo_tdah,
             dificultad_concentracion,
             sabe_leer,
-            sabe_escrivir,
+            sabe_escribir,
             reconoce_numeros,
             puede_sumar,
             puede_restar,
@@ -579,7 +579,7 @@ app.get('/api/nino', (req, res) => {
             tipo_tdah: row.tipo_tdah,
             dificultad_concentracion: row.dificultad_concentracion,
             sabe_leer: row.sabe_leer,
-            sabe_escrivir: row.sabe_escrivir,
+            sabe_escribir: row.sabe_escribir,
             reconoce_numeros: row.reconoce_numeros,
             puede_sumar: row.puede_sumar,
             puede_restar: row.puede_restar,
@@ -597,7 +597,7 @@ app.get('/api/ninos/:id', (req, res) => {
     const id = req.params.id;
     if (!id) return res.status(400).json({ error: 'id es requerido' });
 
-    const query = `SELECT id_niño, n_nombre, id_papa, Monedas, tiene_tdah, tipo_tdah, dificultad_concentracion, sabe_leer, sabe_escrivir, reconoce_numeros, puede_sumar, puede_restar, puede_multiplicar, puede_dividir FROM prueba_niños WHERE id_niño = ? LIMIT 1`;
+    const query = `SELECT id_niño, n_nombre, id_papa, Monedas, tiene_tdah, tipo_tdah, dificultad_concentracion, sabe_leer, sabe_escribir, reconoce_numeros, puede_sumar, puede_restar, puede_multiplicar, puede_dividir FROM prueba_niños WHERE id_niño = ? LIMIT 1`;
     db.query(query, [id], (err, results) => {
         if (err) {
             console.error('Error al obtener niño por id:', err);
@@ -615,7 +615,7 @@ app.get('/api/ninos/:id', (req, res) => {
             tipo_tdah: r.tipo_tdah,
             dificultad_concentracion: r.dificultad_concentracion,
             sabe_leer: r.sabe_leer,
-            sabe_escrivir: r.sabe_escrivir,
+            sabe_escribir: r.sabe_escribir,
             reconoce_numeros: r.reconoce_numeros,
             puede_sumar: r.puede_sumar,
             puede_restar: r.puede_restar,
@@ -630,7 +630,7 @@ const actualizarPerfilNino = (req, res) => {
     const id = req.params.id;
     const allowed = [
         'n_nombre', 'Monedas', 'tiene_tdah', 'tipo_tdah', 'dificultad_concentracion',
-        'sabe_leer', 'sabe_escrivir', 'reconoce_numeros',
+        'sabe_leer', 'sabe_escribir', 'reconoce_numeros',
         'puede_sumar', 'puede_restar', 'puede_multiplicar', 'puede_dividir'
     ];
 
