@@ -532,6 +532,141 @@ app.get('/api/ninos/:id/monedas', (req, res) => {
     });
 });
 
+// Obtener un solo nino por query ?id_niño=...
+app.get('/api/nino', (req, res) => {
+    const { id_niño } = req.query;
+    if (!id_niño) {
+        return res.status(400).json({ error: 'id_niño es requerido' });
+    }
+
+    console.log('Buscando perfil para id_niño:', id_niño);
+    const query = `
+        SELECT
+            id_niño,
+            n_nombre,
+            id_papa,
+            Monedas,
+            tiene_tdah,
+            tipo_tdah,
+            dificultad_concentracion,
+            sabe_leer,
+            sabe_escrivir,
+            reconoce_numeros,
+            puede_sumar,
+            puede_restar,
+            puede_multiplicar,
+            puede_dividir
+        FROM prueba_niños
+        WHERE id_niño = ?
+        LIMIT 1
+    `;
+    db.query(query, [id_niño], (err, results) => {
+        if (err) {
+            console.error('Error al obtener perfil del niño:', err);
+            return res.status(500).json({ error: 'Error al obtener perfil', detalle: err.message });
+        }
+        if (!results || results.length === 0) {
+            return res.status(404).json({ error: 'Niño no encontrado' });
+        }
+
+        const row = results[0];
+        const perfil = {
+            id_niño: row.id_niño,
+            n_nombre: row.n_nombre,
+            id_papa: row.id_papa,
+            Monedas: row.Monedas,
+            tiene_tdah: row.tiene_tdah,
+            tipo_tdah: row.tipo_tdah,
+            dificultad_concentracion: row.dificultad_concentracion,
+            sabe_leer: row.sabe_leer,
+            sabe_escrivir: row.sabe_escrivir,
+            reconoce_numeros: row.reconoce_numeros,
+            puede_sumar: row.puede_sumar,
+            puede_restar: row.puede_restar,
+            puede_multiplicar: row.puede_multiplicar,
+            puede_dividir: row.puede_dividir
+        };
+
+        console.log('Perfil enviado:', JSON.stringify(perfil));
+        res.json(perfil);
+    });
+});
+
+// Alternativa REST: obtener por path /api/ninos/:id
+app.get('/api/ninos/:id', (req, res) => {
+    const id = req.params.id;
+    if (!id) return res.status(400).json({ error: 'id es requerido' });
+
+    const query = `SELECT id_niño, n_nombre, id_papa, Monedas, tiene_tdah, tipo_tdah, dificultad_concentracion, sabe_leer, sabe_escrivir, reconoce_numeros, puede_sumar, puede_restar, puede_multiplicar, puede_dividir FROM prueba_niños WHERE id_niño = ? LIMIT 1`;
+    db.query(query, [id], (err, results) => {
+        if (err) {
+            console.error('Error al obtener niño por id:', err);
+            return res.status(500).json({ error: 'Error al obtener niño' });
+        }
+        if (!results || results.length === 0) return res.status(404).json({ error: 'Niño no encontrado' });
+
+        const r = results[0];
+        res.json({
+            id_niño: r.id_niño,
+            n_nombre: r.n_nombre,
+            id_papa: r.id_papa,
+            Monedas: r.Monedas,
+            tiene_tdah: r.tiene_tdah,
+            tipo_tdah: r.tipo_tdah,
+            dificultad_concentracion: r.dificultad_concentracion,
+            sabe_leer: r.sabe_leer,
+            sabe_escrivir: r.sabe_escrivir,
+            reconoce_numeros: r.reconoce_numeros,
+            puede_sumar: r.puede_sumar,
+            puede_restar: r.puede_restar,
+            puede_multiplicar: r.puede_multiplicar,
+            puede_dividir: r.puede_dividir
+        });
+    });
+});
+
+// Actualizar (parcial) perfil del nino: /api/nino/:id (PATCH/PUT compatible)
+const actualizarPerfilNino = (req, res) => {
+    const id = req.params.id;
+    const allowed = [
+        'n_nombre', 'Monedas', 'tiene_tdah', 'tipo_tdah', 'dificultad_concentracion',
+        'sabe_leer', 'sabe_escrivir', 'reconoce_numeros',
+        'puede_sumar', 'puede_restar', 'puede_multiplicar', 'puede_dividir'
+    ];
+
+    const updates = [];
+    const params = [];
+
+    allowed.forEach((key) => {
+        if (Object.hasOwn(req.body, key)) {
+            updates.push(`${key} = ?`);
+            params.push(req.body[key]);
+        }
+    });
+
+    if (updates.length === 0) {
+        return res.status(400).json({ error: 'No se proporcionaron campos válidos para actualizar' });
+    }
+
+    params.push(id);
+
+    const sql = `UPDATE prueba_niños SET ${updates.join(', ')} WHERE id_niño = ?`;
+    console.log('Actualizando niño', id, 'con', req.body);
+    db.query(sql, params, (err, result) => {
+        if (err) {
+            console.error('Error al actualizar perfil del niño:', err);
+            return res.status(500).json({ error: 'Error al actualizar perfil', detalle: err.message });
+        }
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Niño no encontrado' });
+        }
+        return res.json({ success: true, mensaje: 'Perfil actualizado' });
+    });
+};
+
+app.put('/api/nino/:id', actualizarPerfilNino);
+app.patch('/api/nino/:id', actualizarPerfilNino);
+
 // Iniciar servidor
 app.listen(PORT, () => {
     console.log(`Servidor corriendo en http://localhost:${PORT}`);
